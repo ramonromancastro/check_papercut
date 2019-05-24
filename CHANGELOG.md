@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Todo
-- Validate parameters values.
+- Validación de los parámetros.
 
-[Unreleased]: https://github.com/ramonromancastro/check_papercut/HEAD
+## [0.2.0] - 2019-05-24
+### Added
+- Primera versión funcional.
+
+[Unreleased]: https://github.com/ramonromancastro/check_papercut/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/ramonromancastro/check_papercut/releases/tag/0.2.0
