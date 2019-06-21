@@ -13,6 +13,8 @@ Options:
  -p, --port <port>   PaperCut port
  -a, --authentication <auth>  PaperCut authorization key
  -t, --timeout <seconds>  Maximum time allowed for connection
+ -S, --status <value>  Item status. If none specified,
+                       global status is tested
  -w, --warning <value>  Warning interval
  -c, --critical <value>  Critical interval
  -d, --days <days>   License remaining days
