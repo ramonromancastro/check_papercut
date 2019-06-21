@@ -25,10 +25,22 @@
 
 # CONSTANTS
 
-version=0.2.0
+version=0.3.0
 plugin=check_papercut.sh
 
+# job-ticketing/status
+# license/status
+# mobility-print-servers/status
+# print-providers/status
+# printers/status
+# site-servers/status
+# web-print/status
+# application-server/status
+# database/status
+# devices/status
+
 api_url="/api/health/"
+availables_status="database,devices,job-ticketing,license,mobility-print-servers,print-providers,printers,site-servers,web-print"
 
 # GLOBAL VARIABLES
 
@@ -50,6 +62,7 @@ plugin_critical=1
 plugin_days=30
 plugin_authentication=
 plugin_verbose=0
+plugin_status=
 
 plugin_problems=0
 
@@ -103,6 +116,10 @@ getparams(){
 				shift
 				plugin_critical=$1
 				;;
+			--status|-S)
+				shift
+				plugin_status=$1
+				;;
 			--days|-d)
 				shift
 				plugin_days=$1
@@ -146,12 +163,18 @@ Options:
  -p, --port <port>   PaperCut port
  -a, --authentication <auth>  PaperCut authorization key
  -t, --timeout <seconds>  Maximum time allowed for connection
+ -S, --status <value>  Item status. If none specified,
+                       global status is tested
  -w, --warning <value>  Warning interval
  -c, --critical <value>  Critical interval
  -d, --days <days>   License remaining days
  -v, --verbose       Make the operation more talkative  
  -V, --version       Show version number and quit
  -h, --help          This help text
+ 
+Notes
+ Item status availables are:
+   $availables_status
 EOF
 }
 
@@ -162,7 +185,7 @@ getparams "$@"
 
 url_health_summary="${plugin_protocol}://${plugin_hostname}:${plugin_port}${api_url}?Authorization=${plugin_authentication}"
 
-verbose 1 "Getting server status"
+verbose 1 "Getting server status from $url_health_summary"
 json_response=$(curl --connect-timeout ${plugin_timeout} --silent --insecure ${url_health_summary} 2> /dev/null)
 
 verbose 1 "Parsing server status"
@@ -180,65 +203,83 @@ webPrint_offlineCount=$(echo $json_response | jq -r ".webPrint.offlineCount")
 verbose 1 "Checking server status"
 
 ## Database
-if [ "${database_status}" != "OK" ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Database.status: ${database_status}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "database" ]; then
+	if [ "${database_status}" != "OK" ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Database.status: ${database_status}")
+	fi
 fi
 
 ## Devices
-if [ "${devices_inErrorCount}" -ne 0 ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Devices.errorCount: ${devices_inErrorCount}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "devices" ]; then
+	if [ "${devices_inErrorCount}" -ne 0 ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Devices.errorCount: ${devices_inErrorCount}")
+	fi
+	plugin_returnPerfData+=("'devices_inErrorCount'=${devices_inErrorCount};1")
 fi
-plugin_returnPerfData+=("'devices_inErrorCount'=${devices_inErrorCount};1")
 
 ## Job Ticketing
-if [ "${jobTicketing_status}" != "OK" ] && [ "${jobTicketing_message}" != "Job Ticketing is not installed." ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Job Ticketing.status: ${jobTicketing_message}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "job-ticketing" ]; then
+	if [ "${jobTicketing_status}" != "OK" ] && [ "${jobTicketing_message}" != "Job Ticketing is not installed." ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Job Ticketing.status: ${jobTicketing_message}")
+	fi
 fi
 
 ## License
-if [ "${license_licenseRemainingDays}" -le "${plugin_days}" ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("License.remainingDays: ${license_licenseRemainingDays}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "license" ]; then
+	if [ "${license_licenseRemainingDays}" -le "${plugin_days}" ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("License.remainingDays: ${license_licenseRemainingDays}")
+	fi
+	plugin_returnPerfData+=("'license_licenseRemainingDays'=${license_licenseRemainingDays};${plugin_days}:")
 fi
-plugin_returnPerfData+=("'license_licenseRemainingDays'=${license_licenseRemainingDays};${plugin_days}:")
 
 ## Mobility Print Servers
-if [ "${mobilityPrintServers_offlineCount}" -ne 0 ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Mobility Print Servers.offlineCount: ${mobilityPrintServers_offlineCount}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "mobility-print-servers" ]; then
+	if [ "${mobilityPrintServers_offlineCount}" -ne 0 ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Mobility Print Servers.offlineCount: ${mobilityPrintServers_offlineCount}")
+	fi
+	plugin_returnPerfData+=("'mobilityPrintServers_offlineCount'=${mobilityPrintServers_offlineCount};1")
 fi
-plugin_returnPerfData+=("'mobilityPrintServers_offlineCount'=${mobilityPrintServers_offlineCount};1")
 
 ## Print Providers
-if [ "${printProviders_offlineCount}" -ne 0 ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Print Providers.offlineCount: ${printProviders_offlineCount}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "print-providers" ]; then
+	if [ "${printProviders_offlineCount}" -ne 0 ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Print Providers.offlineCount: ${printProviders_offlineCount}")
+	fi
+	plugin_returnPerfData+=("'printProviders_offlineCount'=${printProviders_offlineCount};1")
 fi
-plugin_returnPerfData+=("'printProviders_offlineCount'=${printProviders_offlineCount};1")
 
 ## Printers
-if [ "${printers_inErrorCount}" -ne 0 ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Printers.errorCount: ${printers_inErrorCount}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "printers" ]; then
+	if [ "${printers_inErrorCount}" -ne 0 ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Printers.errorCount: ${printers_inErrorCount}")
+	fi
+	plugin_returnPerfData+=("'printers_inErrorCount'=${printers_inErrorCount};1")
 fi
-plugin_returnPerfData+=("'printers_inErrorCount'=${printers_inErrorCount};1")
 
 ## Site Servers
-if [ "${siteServers_offlineCount}" -ne 0 ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Site Servers.offlineCount: ${siteServers_offlineCount}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "site-servers" ]; then
+	if [ "${siteServers_offlineCount}" -ne 0 ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Site Servers.offlineCount: ${siteServers_offlineCount}")
+	fi
+	plugin_returnPerfData+=("'siteServers_offlineCount'=${siteServers_offlineCount};1")
 fi
-plugin_returnPerfData+=("'siteServers_offlineCount'=${siteServers_offlineCount};1")
 
 ## Web Print
-if [ "${webPrint_offlineCount}" -ne 0 ]; then
-	((plugin_problems++))
-	plugin_returnDetails+=("Web Print.offlineCount: ${webPrint_offlineCount}")
+if [ -z $plugin_status ] || [ "$plugin_status" == "web-print" ]; then
+	if [ "${webPrint_offlineCount}" -ne 0 ]; then
+		((plugin_problems++))
+		plugin_returnDetails+=("Web Print.offlineCount: ${webPrint_offlineCount}")
+	fi
+	plugin_returnPerfData+=("'webPrint_offlineCount'=${webPrint_offlineCount};1")
 fi
-plugin_returnPerfData+=("'webPrint_offlineCount'=${webPrint_offlineCount};1")
 
 ## Write plugin reponse
 if [ "${plugin_problems}" -gt 0 ]; then
