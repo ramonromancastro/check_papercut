@@ -6,11 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Todo
-- Validaci�n de los par�metros.
+- Validación de los parámetros.
+
+## [0.3.0] - 2019-06-21
+### Added
+- Añadido el parámetro --status.
 
 ## [0.2.0] - 2019-05-24
 ### Added
-- Primera versi�n funcional.
+- Primera versión funcional.
 
 [Unreleased]: https://github.com/ramonromancastro/check_papercut/compare/0.2.0...HEAD
+[0.3.0]: https://github.com/ramonromancastro/check_papercut/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/ramonromancastro/check_papercut/releases/tag/0.2.0
