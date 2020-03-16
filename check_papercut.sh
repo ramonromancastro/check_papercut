@@ -25,7 +25,7 @@
 
 # CONSTANTS
 
-version=0.3.0
+version=0.4.0
 plugin=check_papercut.sh
 
 # job-ticketing/status
@@ -193,7 +193,7 @@ database_status=$(echo $json_response | jq -r ".database.status")
 devices_inErrorCount=$(echo $json_response | jq -r ".devices.inErrorCount")
 jobTicketing_status=$(echo $json_response | jq -r ".jobTicketing.status.status")
 jobTicketing_message=$(echo $json_response | jq -r ".jobTicketing.status.message")
-license_licenseRemainingDays=$(echo $json_response | jq -r ".license.licenseRemainingDays")
+license_upgradeAssuranceRemainingDays=$(echo $json_response | jq -r ".license.upgradeAssuranceRemainingDays")
 mobilityPrintServers_offlineCount=$(echo $json_response | jq -r ".mobilityPrintServers.offlineCount")
 printProviders_offlineCount=$(echo $json_response | jq -r ".printProviders.offlineCount")
 printers_inErrorCount=$(echo $json_response | jq -r ".printers.inErrorCount")
@@ -229,11 +229,11 @@ fi
 
 ## License
 if [ -z $plugin_status ] || [ "$plugin_status" == "license" ]; then
-	if [ "${license_licenseRemainingDays}" -le "${plugin_days}" ]; then
+	if [ "${license_upgradeAssuranceRemainingDays}" -le "${plugin_days}" ]; then
 		((plugin_problems++))
-		plugin_returnDetails+=("License.remainingDays: ${license_licenseRemainingDays}")
+		plugin_returnDetails+=("License.remainingDays: ${license_upgradeAssuranceRemainingDays}")
 	fi
-	plugin_returnPerfData+=("'license_licenseRemainingDays'=${license_licenseRemainingDays};${plugin_days}:")
+	plugin_returnPerfData+=("'license_upgradeAssuranceRemainingDays'=${license_upgradeAssuranceRemainingDays};${plugin_days}:")
 fi
 
 ## Mobility Print Servers
