@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # check_papercut check PaperCut server status.
 # Copyright (C) 2019  Ramón Román Castro <ramonromancastro@gmail.com>
